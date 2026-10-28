@@ -1,0 +1,21 @@
+{
+  "name": "consul-demo",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "consul": "node scripts/consul.mjs",
+    "product": "node product-service/index.js",
+    "customer": "node customer-service/index.js",
+    "order": "node order-service/index.js",
+    "payment": "node payment-service/index.js",
+    "ui": "node ui/server.js",
+    "start": "node scripts/start-all.mjs"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
