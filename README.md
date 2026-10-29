@@ -1,15 +1,17 @@
 # Consul registration demo
 
-Two tiny microservices register **themselves** in HashiCorp Consul when they start, and remove themselves when they stop. A small web page shows what Consul currently knows. No Docker.
+Four tiny microservices register **themselves** in HashiCorp Consul when they start, and remove themselves when they stop. A small web page shows what Consul currently knows. No Docker.
 
 ```
 consul-demo/
 ├── product-service/index.js    port 4001   GET /products   (registers itself)
 ├── customer-service/index.js   port 4002   GET /customers  (registers itself)
+├── order-service/index.js      port 4003   GET /orders     (registers itself)
+├── payment-service/index.js    port 4004   GET /payments   (registers itself)
 ├── ui/server.js                port 3000   reads Consul, serves the page
 ├── ui/public/index.html        the web page (plain HTML, no build step)
 ├── scripts/consul.mjs          downloads (first run) and starts the Consul server
-└── scripts/start-all.mjs       optional: starts both services and the UI in one terminal
+└── scripts/start-all.mjs       optional: starts all four services and the UI in one terminal
 ```
 
 ## Requirements
@@ -25,26 +27,28 @@ You do **not** need to install Consul yourself. `npm run consul` downloads the o
 npm install
 ```
 
-Open four terminals in this folder, one command in each:
+Open six terminals in this folder, one command in each:
 
 | Terminal | Command | Then |
 |---|---|---|
 | 1 | `npm run consul` | The Consul server starts. Its web UI: http://localhost:8500/ui |
-| 2 | `npm run product` | |
-| 3 | `npm run customer` | |
-| 4 | `npm run ui` | Web page: http://localhost:3000 |
+| 2 | `npm run product` | `product-service` on http://localhost:4001/products |
+| 3 | `npm run customer` | `customer-service` on http://localhost:4002/customers |
+| 4 | `npm run order` | `order-service` on http://localhost:4003/orders |
+| 5 | `npm run payment` | `payment-service` on http://localhost:4004/payments |
+| 6 | `npm run ui` | Web page: http://localhost:3000 |
 
-Shortcut: keep Consul running in terminal 1, then run `npm start` in terminal 2. It runs both services and the UI together, and Ctrl+C stops all three and deregisters the services. Stop Consul last.
+Shortcut: keep Consul running in terminal 1, then run `npm start` in terminal 2. It runs all four services and the UI together, and Ctrl+C stops all five and deregisters the services. Stop Consul last.
 
 Where is Consul? It is the program started by `npm run consul`: a separate server process listening on port 8500. The services never contain Consul; they send it HTTP requests (see below).
 
 ## 5-step classroom demo
 
-1. Start Consul with `npm run consul` (terminal 1) and the UI (terminal 4). Open http://localhost:3000. The table is empty.
+1. Start Consul with `npm run consul` (terminal 1) and the UI with `npm run ui` (another terminal). Open http://localhost:3000. The table is empty.
 2. Run `npm run product`. The terminal prints `✔ REGISTERED in Consul as "product-service"`. Within a few seconds the row appears on the page and turns green once Consul's first health check passes.
-3. Run `npm run customer`. A second row appears.
-4. Open http://localhost:4001/products and http://localhost:4002/customers. Each service answers on its own port.
-5. Press Ctrl+C in the product terminal. It prints `✔ DEREGISTERED`, and the row disappears from the page and from the Consul UI.
+3. Run `npm run customer`, `npm run order`, and `npm run payment` in separate terminals. Each service registers itself and appears as a new row in the table.
+4. Open http://localhost:4001/products, http://localhost:4002/customers, http://localhost:4003/orders, and http://localhost:4004/payments. Each service answers on its own port.
+5. Press Ctrl+C in any service terminal (e.g. `product-service`). It prints `✔ DEREGISTERED`, and its row disappears from the page and from the Consul UI.
 
 ## Where the registration happens
 
@@ -53,7 +57,7 @@ Open `product-service/index.js` and find the two comment blocks:
 - **STEP 1: REGISTER WITH CONSUL** sends `PUT /v1/agent/service/register` with `ID`, `Name`, `Address`, `Port` and a health check (`GET /health` every 5 seconds).
 - **STEP 2: DEREGISTER ON SHUTDOWN** sends `PUT /v1/agent/service/deregister/<ID>` when you press Ctrl+C.
 
-`customer-service/index.js` is the same code with a different name, port and data.
+`customer-service/index.js`, `order-service/index.js`, and `payment-service/index.js` use the exact same code with their own name, port, and endpoint data.
 
 ## Things worth knowing
 
